@@ -419,7 +419,7 @@ def _edit_or_append_file(
                 if first_error_line is not None:
                     CURRENT_LINE = int(first_error_line)
                 print(
-                    '[Your proposed edit has introduced new syntax error(s) in the Ruby programming language. Please understand the errors and retry your edit command.]'
+                    '[Your proposed edit has introduced new syntax error(s). Please understand the errors and retry your edit command.]'
                 )
                 print(lint_error)
 

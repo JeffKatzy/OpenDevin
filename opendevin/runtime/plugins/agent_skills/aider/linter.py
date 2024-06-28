@@ -1,12 +1,10 @@
 import os
-import re
 import subprocess
 import sys
 import traceback
 import warnings
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict
 
 from grep_ast import TreeContext, filename_to_lang
 from tree_sitter_languages import get_parser  # noqa: E402
@@ -194,31 +192,13 @@ def tree_context(fname, code, line_nums):
 def traverse_tree(node):
     errors = []
     if node.type == 'ERROR' or node.is_missing:
-        line_no = node.start_point[0]
+        line_no = node.start_point[0] + 1
         errors.append(line_no)
 
     for child in node.children:
         errors += traverse_tree(child)
 
     return errors
-
-
-def find_filenames_and_linenums(text, fnames) -> Dict[str, set | int]:
-    """
-    Search text for all occurrences of <filename>:\\d+ and make a list of them
-    where <filename> is one of the filenames in the list `fnames`.
-    """
-    pattern = re.compile(
-        r'(\b(?:' + '|'.join(re.escape(fname) for fname in fnames) + r'):\d+\b)'
-    )
-    matches = pattern.findall(text)
-    result = {}
-    for match in matches:
-        fname, linenum = match.rsplit(':', 1)
-        if fname not in result:
-            result[fname] = set()
-        result[fname].add(int(linenum))
-    return result
 
 
 def main():

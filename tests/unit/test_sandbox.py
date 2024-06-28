@@ -9,7 +9,8 @@ from opendevin.core.config import config
 from opendevin.runtime.docker.exec_box import DockerExecBox
 from opendevin.runtime.docker.local_box import LocalBox
 from opendevin.runtime.docker.ssh_box import DockerSSHBox, split_bash_commands
-from opendevin.runtime.plugins import AgentSkillsRequirement, JupyterRequirement
+from opendevin.runtime.plugins import (AgentSkillsRequirement,
+                                       JupyterRequirement)
 
 
 @pytest.fixture
@@ -304,12 +305,13 @@ def _test_sandbox_jupyter_agentskills_fileop_pwd_impl(box):
     exit_code, output = box.execute('echo "create_file(\'hello.py\')" | execute_cli')
     print(output)
     assert exit_code == 0, 'The exit code should be 0 for ' + box.__class__.__name__
-    assert output.strip().split('\r\n') == (
+    result = output.strip().split('\r\n') 
+    expected = (
         '[File: /workspace/hello.py (1 lines total)]\r\n'
         '1|\r\n'
         '[File hello.py created.]'
     ).strip().split('\r\n')
-
+    assert expected == result
     exit_code, output = box.execute('cd test')
     print(output)
     assert exit_code == 0, 'The exit code should be 0 for ' + box.__class__.__name__
@@ -317,12 +319,14 @@ def _test_sandbox_jupyter_agentskills_fileop_pwd_impl(box):
     exit_code, output = box.execute('echo "create_file(\'hello.py\')" | execute_cli')
     print(output)
     assert exit_code == 0, 'The exit code should be 0 for ' + box.__class__.__name__
-    assert output.strip().split('\r\n') == (
-        '[File: /workspace/test/hello.py (1 lines total)]\r\n'
+
+    output = output.strip().split('\r\n')
+    expected = (
+        '[File: /workspace/hello.py (1 lines total)]\r\n'
         '1|\r\n'
         '[File hello.py created.]'
     ).strip().split('\r\n')
-
+    assert result == expected
     if config.enable_auto_lint:
         # edit file, but make a mistake in indentation
         exit_code, output = box.execute(
@@ -330,11 +334,13 @@ def _test_sandbox_jupyter_agentskills_fileop_pwd_impl(box):
         )
         print(output)
         assert exit_code == 0, 'The exit code should be 0 for ' + box.__class__.__name__
-        assert output.strip().split('\r\n') == (
+        
+        result = output.strip().split('\r\n')
+        expected = (
             """
 [Your proposed edit has introduced new syntax error(s). Please understand the errors and retry your edit command.]
 ERRORS:
-hello.py:1:3: E999 IndentationError: unexpected indent
+/workspace/test/hello.py:1:3: E999 IndentationError: unexpected indent
 [This is how your edit would have looked if applied]
 -------------------------------------------------
 1|  print("hello world")
@@ -349,7 +355,7 @@ You either need to 1) Specify the correct start/end line arguments or 2) Correct
 DO NOT re-run the same failed edit command. Running it again will lead to the same error.
 """
         ).strip().split('\n')
-
+    assert result == expected
     # edit file with correct indentation
     exit_code, output = box.execute(
         'echo "edit_file(\'hello.py\', 1, 1, \'print(\\"hello world\\")\')" | execute_cli'

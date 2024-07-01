@@ -78,7 +78,7 @@ class Linter:
         if not cmd:
             lang = filename_to_lang(fname)
             if not lang:
-                return
+                return None
             if self.all_lint_cmd:
                 cmd = self.all_lint_cmd
             else:
